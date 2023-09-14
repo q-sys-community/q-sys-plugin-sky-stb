@@ -18,14 +18,14 @@ table.insert(
   }
 )
 for control, _ in pairs(SkySNAPIList) do
-    table.insert(
-      ctrls,
-      {
-        Name = "RemoteButton" .. control,
-        ControlType = "Button",
-        ButtonType = "Trigger",
-        UserPin = true,
-        PinStyle = "Both"
-      }
-    )
-  end
+  table.insert(
+    ctrls,
+    {
+      Name = "RemoteButton" .. control,
+      ControlType = "Button",
+      ButtonType = "Trigger",
+      UserPin = true,
+      PinStyle = "Both"
+    }
+  )
+end

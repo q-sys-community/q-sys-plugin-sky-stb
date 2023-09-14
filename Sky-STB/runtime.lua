@@ -24,7 +24,6 @@ function fnCheckConnection()
   end
 end
 
--- EventHandler
 Sky.EventHandler = function(Sky, evt, err)
   if evt == TcpSocket.Events.Connected then
     print("socket connected")
@@ -40,8 +39,6 @@ Sky.EventHandler = function(Sky, evt, err)
       Sky:Write(returndata)
       length = 1
     else
-      --cmd1 = string.char(4, 1, 0, 0, 0, 0, math.floor(224 + button / 16), button % 16)
-      --cmd2 = string.char(4, 0, 0, 0, 0, 0, math.floor(224 + button / 16), button % 16)
       processed_cmd = string.char(math.floor(224 + (button / 16))) .. string.char((button % 16))
       print(processed_cmd)
       cmd1 = "\x04\x01\x00\x00\x00\x00" .. processed_cmd
@@ -63,16 +60,12 @@ Sky.EventHandler = function(Sky, evt, err)
     fnCloseSocket()
     Controls.Status.Value = 2
   else
-    print("unknown socket event", evt) --should never happen
+    print("unknown socket event", evt)
     fnCloseSocket()
   end
 end
 
-Controls.IPAddress.EventHandler = function(ctl)
-  --
-end
-
-for control,value in pairs(SkySNAPIList) do
+for control, value in pairs(SkySNAPIList) do
   Controls["RemoteButton" .. control].EventHandler = function()
     button = value
     fnCheckConnection()
