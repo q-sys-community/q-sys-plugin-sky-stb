@@ -7,12 +7,13 @@ PluginInfo = {
   Description = "Control of Sky+, Sky+HD and Sky Q STBs"  
 }
 
+-- just to keep the order in layout
 local ButtonNames = {
   "Play",
   "Stop",
   "Pause",
-  "Next",
-  "Previous",
+  --"Next",
+  --"Previous",
   "Ffwd",
   "Rew",
   "Record",
@@ -62,6 +63,63 @@ local ButtonNames = {
   "Green",
   "Yellow",
   "Blue"
+}
+
+local SkySNAPIList = {
+  ["Play"]= 064, --01	Play
+  ["Stop"]=066, --02	Stop
+  ["Pause"]=065, --03	Pause
+  --["Next"]=999, --04	Next
+  --["Previous"]=999, --05	Previous
+  ["Ffwd"]=069, --06	Search Fwd
+  ["Rew"]=071, --07	Search Rev
+  ["Record"]=067, --08	Record
+  ["Power"]=000, --09	Power
+  ["Key 0"]=048, --10	Keypad 0
+  ["Key 1"]=049, --11	Keypad 1
+  ["Key 2"]=050, --12	Keypad 2
+  ["Key 3"]=051, --13	Keypad 3
+  ["Key 4"]=052, --14	Keypad 4
+  ["Key 5"]=053, --15	Keypad 5
+  ["Key 6"]=054, --16	Keypad 6
+  ["Key 7"]=055, --17	Keypad 7
+  ["Key 8"]=056, --18	Keypad 8
+  ["Key 9"]=057, --19	Keypad 9
+  --999,
+  --999,
+  ["Chan +"]=006, --22	Channel Up
+  ["Chan -"]= 007, --23	Channel Down
+  --999,
+  --999,
+  --999,
+  ["Power On"]=0, --27	Power On
+  ["Power Off"]=0, --28	Power Off
+ -- 999,
+  --999,
+  ["Home"]=011, --31	Home (Q)
+  ["Sky"]=241, --32	Sky
+  ["Services"]=010, --33	Services
+  ["Sidebar"]=008, --34	Sidebar (Q)
+  --999,
+  --999,
+  --999,
+  --999,
+  ["Info"]=014, --39	Info
+  --999,
+  --999,
+  --999,
+  --999,
+  ["EPG"]=011, --44	EPG (HD)
+  ["Up"]=016, --45	Up
+  ["Down"]=017, --46	Down
+  ["Left"]=018, --47	Left
+  ["Right"]=019, --48	Right
+  ["OK"]=001, --49	OK
+  ["Back"]=002, --50	Back
+  ["Red"]=032, --51	Red
+  ["Green"]=033, --52	Green
+  ["Yellow"]=034, --53	Yellow
+  ["Blue"]=035 --54	Blue
 }
 
 -- Define the color of the plugin object in the design
@@ -117,8 +175,7 @@ function GetControls(props)
       UserPin = true
     }
   )
-  for _, control in ipairs(ButtonNames) do
-    if control ~= "" then
+  for control, _ in pairs(SkySNAPIList) do
       table.insert(
         ctrls,
         {
@@ -130,7 +187,6 @@ function GetControls(props)
         }
       )
     end
-  end
   return ctrls
 end
 
@@ -162,7 +218,7 @@ function GetControlLayout(props)
     }
   
     i, j = 0, 1
-    for _, control in ipairs(ButtonNames) do
+  for _, control in ipairs(ButtonNames) do
       if control ~= "" then
         layout["RemoteButton" .. control] = {
           PrettyName = "Remote~" .. control,
@@ -180,6 +236,23 @@ function GetControlLayout(props)
       end
     end
   end
+  
+    --[[for control, _ in pairs(SkySNAPIList) do
+      layout["RemoteButton" .. control] = {
+        PrettyName = "Remote~" .. control,
+        Legend = control,
+        Style = "Button",
+        ButtonStyle = "Trigger",
+        Position = {x + 80 + (50 * i), y + 40 + (25 * j)},
+        Size = {50, 25}
+      }
+      i = i + 1
+      if i == 5 then
+        i = 0
+        j = j + 1
+      end
+    end
+  end]]
   return layout, graphics
 end
 
@@ -191,63 +264,6 @@ if Controls then
   
   local ip_pattern = "[012]?%d?%d+%.[012]?%d?%d+%.[012]?%d?%d+%.[012]?%d?%d"
   local port = 49160
-  
-  local SkySNAPIList = {
-    ["Play"]= 064, --01	Play
-    ["Stop"]=066, --02	Stop
-    ["Pause"]=065, --03	Pause
-    ["Next"]=999, --04	Next
-    ["Previous"]=999, --05	Previous
-    ["Ffwd"]=069, --06	Search Fwd
-    ["Rew"]=071, --07	Search Rev
-    ["Record"]=067, --08	Record
-    ["Power"]=000, --09	Power
-    ["Key 0"]=048, --10	Keypad 0
-    ["Key 1"]=049, --11	Keypad 1
-    ["Key 2"]=050, --12	Keypad 2
-    ["Key 3"]=051, --13	Keypad 3
-    ["Key 4"]=052, --14	Keypad 4
-    ["Key 5"]=053, --15	Keypad 5
-    ["Key 6"]=054, --16	Keypad 6
-    ["Key 7"]=055, --17	Keypad 7
-    ["Key 8"]=056, --18	Keypad 8
-    ["Key 9"]=057, --19	Keypad 9
-    --999,
-    --999,
-    ["Chan +"]=006, --22	Channel Up
-    ["Chan -"]= 007, --23	Channel Down
-    --999,
-    --999,
-    --999,
-    ["Power On"]=999, --27	Power On
-    ["Power Off"]=999, --28	Power Off
-   -- 999,
-    --999,
-    ["Home"]=011, --31	Home (Q)
-    ["Sky"]=241, --32	Sky
-    ["Services"]=010, --33	Services
-    ["Sidebar"]=008, --34	Sidebar (Q)
-    --999,
-    --999,
-    --999,
-    --999,
-    ["Info"]=014, --39	Info
-    --999,
-    --999,
-    --999,
-    --999,
-    ["EPG"]=011, --44	EPG (HD)
-    ["Up"]=016, --45	Up
-    ["Down"]=017, --46	Down
-    ["Left"]=018, --47	Left
-    ["Right"]=019, --48	Right
-    ["OK"]=001, --49	OK
-    ["Back"]=002, --50	Back
-    ["Red"]=032, --51	Red
-    ["Green"]=033, --52	Green
-    ["Yellow"]=034, --53	Yellow
-    ["Blue"]=035 --54	Blue
-  }
   local Sky
   
   Sky = TcpSocket.New()
@@ -293,10 +309,9 @@ if Controls then
         --cmd1 = string.char(4, 1, 0, 0, 0, 0, math.floor(224 + button / 16), button % 16)
         --cmd2 = string.char(4, 0, 0, 0, 0, 0, math.floor(224 + button / 16), button % 16)
         processed_cmd = string.char(math.floor(224 + (button / 16))) .. string.char((button % 16))
+        print(processed_cmd)
         cmd1 = "\x04\x01\x00\x00\x00\x00" .. processed_cmd
         cmd2 = "\x04\x00\x00\x00\x00\x00" .. processed_cmd
-        Sky:Write(cmd1)
-        Sky:Write(cmd2)
         Sky:Write(cmd1)
         Sky:Write(cmd2)
         Timer.CallAfter(fnCloseSocket, 0.05)
@@ -323,13 +338,10 @@ if Controls then
     --
   end
   
-  for i = 1, #ButtonNames do
-    if ButtonNames[i] ~= "" then
-      print(ButtonNames[i], SkySNAPIList[ButtonNames[i]])
-      Controls["RemoteButton" .. ButtonNames[i]].EventHandler = function(ctl)
-        button = SkySNAPIList[ButtonNames[i]]
-        fnCheckConnection()
-      end
+  for control,value in pairs(SkySNAPIList) do
+    Controls["RemoteButton" .. control].EventHandler = function()
+      button = value
+      fnCheckConnection()
     end
   end
 end

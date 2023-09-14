@@ -22,7 +22,7 @@ if CurrentPage == "Control" then
   }
 
   i, j = 0, 1
-  for _, control in ipairs(ButtonNames) do
+for _, control in ipairs(ButtonNames) do
     if control ~= "" then
       layout["RemoteButton" .. control] = {
         PrettyName = "Remote~" .. control,
@@ -40,3 +40,20 @@ if CurrentPage == "Control" then
     end
   end
 end
+
+  --[[for control, _ in pairs(SkySNAPIList) do
+    layout["RemoteButton" .. control] = {
+      PrettyName = "Remote~" .. control,
+      Legend = control,
+      Style = "Button",
+      ButtonStyle = "Trigger",
+      Position = {x + 80 + (50 * i), y + 40 + (25 * j)},
+      Size = {50, 25}
+    }
+    i = i + 1
+    if i == 5 then
+      i = 0
+      j = j + 1
+    end
+  end
+end]]

@@ -72,12 +72,9 @@ Controls.IPAddress.EventHandler = function(ctl)
   --
 end
 
-for i = 1, #ButtonNames do
-  if ButtonNames[i] ~= "" then
-    print(ButtonNames[i], SkySNAPIList[ButtonNames[i]])
-    Controls["RemoteButton" .. ButtonNames[i]].EventHandler = function(ctl)
-      button = SkySNAPIList[ButtonNames[i]]
-      fnCheckConnection()
-    end
+for control,value in pairs(SkySNAPIList) do
+  Controls["RemoteButton" .. control].EventHandler = function()
+    button = value
+    fnCheckConnection()
   end
 end

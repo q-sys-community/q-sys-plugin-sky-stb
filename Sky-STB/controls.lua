@@ -17,8 +17,7 @@ table.insert(
     UserPin = true
   }
 )
-for _, control in ipairs(ButtonNames) do
-  if control ~= "" then
+for control, _ in pairs(SkySNAPIList) do
     table.insert(
       ctrls,
       {
@@ -30,4 +29,3 @@ for _, control in ipairs(ButtonNames) do
       }
     )
   end
-end
