@@ -98,7 +98,7 @@ if CurrentPage == "Control" then
   layout["Status"] = {
     PrettyName = "Connection State",
     Style = "Text",
-    HTextAlign = "Left",
+    HTextAlign = "Center",
     Margin = standard_indicator_margin,
     StrokeWidth = 0,
     Position = {setup_groupbox_position[1] + (3 * btn_size[1]), setup_groupbox_position[2] + (2 * btn_size[2])},
