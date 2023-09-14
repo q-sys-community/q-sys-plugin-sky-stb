@@ -1,0 +1,335 @@
+PluginInfo = {
+  Name = "Sky~STB",
+  Version = "0.0",
+  BuildVersion = "0.0.0.0",
+  Id = "14995269-0876-4ae6-86cc-60d66080b2ac",
+  Author = "Carrier Labs",
+  Description = "Control of Sky+, Sky+HD and Sky Q STBs"  
+}
+
+local ButtonNames = {
+  "Play",
+  "Stop",
+  "Pause",
+  "Next",
+  "Previous",
+  "Ffwd",
+  "Rew",
+  "Record",
+  "Power",
+  "Key 0",
+  "Key 1",
+  "Key 2",
+  "Key 3",
+  "Key 4",
+  "Key 5",
+  "Key 6",
+  "Key 7",
+  "Key 8",
+  "Key 9",
+  "",
+  "",
+  "Chan +",
+  "Chan -",
+  "",
+  "",
+  "",
+  "Power On",
+  "Power Off",
+  "",
+  "",
+  "Home",
+  "Sky",
+  "Services",
+  "Sidebar",
+  "",
+  "",
+  "",
+  "",
+  "Info",
+  "",
+  "",
+  "",
+  "",
+  "EPG",
+  "Up",
+  "Down",
+  "Left",
+  "Right",
+  "OK",
+  "Back",
+  "Red",
+  "Green",
+  "Yellow",
+  "Blue"
+}
+
+-- Define the color of the plugin object in the design
+function GetColor(props)
+  return { 102, 102, 102 }
+end
+
+-- The name that will initially display when dragged into a design
+function GetPrettyName(props)
+  return "Sky STB " .. PluginInfo.Version
+end
+
+-- Optional function used if plugin has multiple pages
+PageNames = { "Control", }  --List the pages within the plugin
+function GetPages(props)
+  local pages = {}
+  for ix,name in ipairs(PageNames) do
+    table.insert(pages, {name = PageNames[ix]})
+  end
+  return pages
+end
+
+-- Define User configurable Properties of the plugin
+function GetProperties()
+  local props = {}
+  return props
+end
+
+-- Optional function to update available properties when properties are altered by the user
+function RectifyProperties(props)
+  return props
+end
+
+-- Defines the Controls used within the plugin
+function GetControls(props)
+  local ctrls = {}
+  table.insert(
+    ctrls,
+    {
+      Name = "IPAddress",
+      ControlType = "Text",
+      UserPin = true,
+      PinStyle = "Both"
+    }
+  )
+  table.insert(
+    ctrls,
+    {
+      Name = "Status",
+      ControlType = "Indicator",
+      IndicatorType = Reflect and "StatusGP" or "Status",
+      PinStyle = "Output",
+      UserPin = true
+    }
+  )
+  for _, control in ipairs(ButtonNames) do
+    if control ~= "" then
+      table.insert(
+        ctrls,
+        {
+          Name = "RemoteButton" .. control,
+          ControlType = "Button",
+          ButtonType = "Trigger",
+          UserPin = true,
+          PinStyle = "Both"
+        }
+      )
+    end
+  end
+  return ctrls
+end
+
+--Layout of controls and graphics for the plugin UI to display
+function GetControlLayout(props)
+  local layout = {}
+  local graphics = {}
+  local CurrentPage = PageNames[props["page_index"].Value]
+  if CurrentPage == "Control" then
+    local x, y = 0, 0
+    -- Status Info Section
+    layout["IPAddress"] = {
+      PrettyName = "Online",
+      Style = "Indicator",
+      Color = {0, 255, 0},
+      OffColor = {200, 0, 0},
+      UnlinkOffColor = true,
+      Position = {x + 3, y + 25},
+      Size = {x + 25, y + 25}
+    }
+    layout["Status"] = {
+      PrettyName = "Connection State",
+      Style = "Text",
+      HTextAlign = "Left",
+      Padding = 5,
+      StrokeWidth = 0,
+      Position = {x + 35, y + 25},
+      Size = {200, 25}
+    }
+  
+    i, j = 0, 1
+    for _, control in ipairs(ButtonNames) do
+      if control ~= "" then
+        layout["RemoteButton" .. control] = {
+          PrettyName = "Remote~" .. control,
+          Legend = control,
+          Style = "Button",
+          ButtonStyle = "Trigger",
+          Position = {x + 80 + (50 * i), y + 40 + (25 * j)},
+          Size = {50, 25}
+        }
+        i = i + 1
+        if i == 5 then
+          i = 0
+          j = j + 1
+        end
+      end
+    end
+  end
+  return layout, graphics
+end
+
+--Start event based logic
+if Controls then
+  local length = 0
+  local button = 0
+  local buffer = ''
+  
+  local ip_pattern = "[012]?%d?%d+%.[012]?%d?%d+%.[012]?%d?%d+%.[012]?%d?%d"
+  local port = 49160
+  
+  local SkySNAPIList = {
+    ["Play"]= 064, --01	Play
+    ["Stop"]=066, --02	Stop
+    ["Pause"]=065, --03	Pause
+    ["Next"]=999, --04	Next
+    ["Previous"]=999, --05	Previous
+    ["Ffwd"]=069, --06	Search Fwd
+    ["Rew"]=071, --07	Search Rev
+    ["Record"]=067, --08	Record
+    ["Power"]=000, --09	Power
+    ["Key 0"]=048, --10	Keypad 0
+    ["Key 1"]=049, --11	Keypad 1
+    ["Key 2"]=050, --12	Keypad 2
+    ["Key 3"]=051, --13	Keypad 3
+    ["Key 4"]=052, --14	Keypad 4
+    ["Key 5"]=053, --15	Keypad 5
+    ["Key 6"]=054, --16	Keypad 6
+    ["Key 7"]=055, --17	Keypad 7
+    ["Key 8"]=056, --18	Keypad 8
+    ["Key 9"]=057, --19	Keypad 9
+    --999,
+    --999,
+    ["Chan +"]=006, --22	Channel Up
+    ["Chan -"]= 007, --23	Channel Down
+    --999,
+    --999,
+    --999,
+    ["Power On"]=999, --27	Power On
+    ["Power Off"]=999, --28	Power Off
+   -- 999,
+    --999,
+    ["Home"]=011, --31	Home (Q)
+    ["Sky"]=241, --32	Sky
+    ["Services"]=010, --33	Services
+    ["Sidebar"]=008, --34	Sidebar (Q)
+    --999,
+    --999,
+    --999,
+    --999,
+    ["Info"]=014, --39	Info
+    --999,
+    --999,
+    --999,
+    --999,
+    ["EPG"]=011, --44	EPG (HD)
+    ["Up"]=016, --45	Up
+    ["Down"]=017, --46	Down
+    ["Left"]=018, --47	Left
+    ["Right"]=019, --48	Right
+    ["OK"]=001, --49	OK
+    ["Back"]=002, --50	Back
+    ["Red"]=032, --51	Red
+    ["Green"]=033, --52	Green
+    ["Yellow"]=034, --53	Yellow
+    ["Blue"]=035 --54	Blue
+  }
+  local Sky
+  
+  Sky = TcpSocket.New()
+  Sky.ReadTimeout = 0
+  Sky.WriteTimeout = 0
+  Sky.ReconnectTimeout = 0
+  
+  function IsConnected()
+    return Sky.IsConnected
+  end
+  
+  function fnCloseSocket()
+    Sky:Disconnect()
+  end
+  
+  function fnCheckConnection()
+    if not IsConnected() then
+      if string.find(Controls.IPAddress.String, ip_pattern) then
+        Controls.Status.Value = 5
+        Sky:Connect(Controls.IPAddress.String, port)
+      else
+        Controls.Status.Value = 2
+      end
+    end
+  end
+  
+  -- EventHandler
+  Sky.EventHandler = function(Sky, evt, err)
+    if evt == TcpSocket.Events.Connected then
+      print("socket connected")
+      Controls.Status.Value = 0
+      length = 12
+      buffer = ""
+    elseif evt == TcpSocket.Events.Data then
+      local returndata = ""
+      line = Sky:Read(Sky.BufferLength)
+      buffer = buffer .. line
+      if string.len(buffer) < 24 then
+        returndata = string.sub(line, 1, length)
+        Sky:Write(returndata)
+        length = 1
+      else
+        --cmd1 = string.char(4, 1, 0, 0, 0, 0, math.floor(224 + button / 16), button % 16)
+        --cmd2 = string.char(4, 0, 0, 0, 0, 0, math.floor(224 + button / 16), button % 16)
+        processed_cmd = string.char(math.floor(224 + (button / 16))) .. string.char((button % 16))
+        cmd1 = "\x04\x01\x00\x00\x00\x00" .. processed_cmd
+        cmd2 = "\x04\x00\x00\x00\x00\x00" .. processed_cmd
+        Sky:Write(cmd1)
+        Sky:Write(cmd2)
+        Sky:Write(cmd1)
+        Sky:Write(cmd2)
+        Timer.CallAfter(fnCloseSocket, 0.05)
+      end
+    elseif evt == TcpSocket.Events.Closed then
+      print("socket closed by remote")
+      fnCloseSocket()
+      Controls.Status.Value = 2
+    elseif evt == TcpSocket.Events.Error then
+      print("socket closed due to error", err)
+      fnCloseSocket()
+      Controls.Status.Value = 2
+    elseif evt == TcpSocket.Events.Timeout then
+      print("socket closed due to timeout")
+      fnCloseSocket()
+      Controls.Status.Value = 2
+    else
+      print("unknown socket event", evt) --should never happen
+      fnCloseSocket()
+    end
+  end
+  
+  Controls.IPAddress.EventHandler = function(ctl)
+    --
+  end
+  
+  for i = 1, #ButtonNames do
+    if ButtonNames[i] ~= "" then
+      print(ButtonNames[i], SkySNAPIList[ButtonNames[i]])
+      Controls["RemoteButton" .. ButtonNames[i]].EventHandler = function(ctl)
+        button = SkySNAPIList[ButtonNames[i]]
+        fnCheckConnection()
+      end
+    end
+  end
+end
