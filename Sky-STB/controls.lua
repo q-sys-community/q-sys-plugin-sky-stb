@@ -17,6 +17,15 @@ table.insert(
     UserPin = true
   }
 )
+table.insert(
+  ctrls,
+  {
+    Name = "ChannelSelect",
+    ControlType = "Text",
+    UserPin = true,
+    PinStyle = "Both"
+  }
+)
 for control, _ in pairs(SkySNAPIList) do
   table.insert(
     ctrls,

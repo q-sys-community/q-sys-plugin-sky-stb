@@ -39,13 +39,27 @@ Sky.EventHandler = function(Sky, evt, err)
       Sky:Write(returndata)
       length = 1
     else
-      processed_cmd = string.char(math.floor(224 + (button / 16))) .. string.char((button % 16))
-      print(processed_cmd)
-      cmd1 = "\x04\x01\x00\x00\x00\x00" .. processed_cmd
-      cmd2 = "\x04\x00\x00\x00\x00\x00" .. processed_cmd
-      Sky:Write(cmd1)
-      Sky:Write(cmd2)
-      Timer.CallAfter(fnCloseSocket, 0.05)
+      if channel_select_command then
+        for i=1, #Controls.ChannelSelect.String do
+          local c = string.sub(Controls.ChannelSelect.String,i,i)
+          Timer.CallAfter(
+            function()
+              button = c + 48
+              processed_cmd = string.char(math.floor(224 + (button / 16))) .. string.char((button % 16))
+              Sky:Write(btn_press .. processed_cmd)
+              Sky:Write(btn_release .. processed_cmd)
+            end,
+            i*0.1
+          )
+        end
+        Timer.CallAfter(fnCloseSocket, 1)
+        channel_select_command = false
+      else
+        processed_cmd = string.char(math.floor(224 + (button / 16))) .. string.char((button % 16))
+        Sky:Write(btn_press .. processed_cmd)
+        Sky:Write(btn_release .. processed_cmd)
+        Timer.CallAfter(fnCloseSocket, 0.05)
+      end
     end
   elseif evt == TcpSocket.Events.Closed then
     print("socket closed by remote")
@@ -64,6 +78,13 @@ Sky.EventHandler = function(Sky, evt, err)
     fnCloseSocket()
   end
 end
+
+function selectChannel()
+  channel_select_command = true
+  fnCheckConnection()
+end
+
+Controls.ChannelSelect.EventHandler = selectChannel
 
 for control, value in pairs(SkySNAPIList) do
   Controls["RemoteButton" .. control].EventHandler = function()

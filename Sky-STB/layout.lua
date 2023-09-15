@@ -9,7 +9,7 @@ local btn_size = {64, 24}
 local row_size = 4
 local logo_area_height = 3 * btn_size[2]
 local logo_size = {1.5 * btn_size[1], 0.625 * 1.5 * btn_size[1]}
-local setup_groupbox_size = {6 * btn_size[1], 4 * btn_size[2]}
+local setup_groupbox_size = {6 * btn_size[1], 3 * btn_size[2]}
 local setup_groupbox_position = {0, logo_area_height}
 local control_groupbox_size = {
   setup_groupbox_size[1],
@@ -76,8 +76,8 @@ if CurrentPage == "Control" then
     }
   )
   layout["IPAddress"] = {
-    PrettyName = "Online",
-    Style = "Indicator",
+    PrettyName = "System~IP Address",
+    Style = "Text",
     Margin = standard_indicator_margin,
     Position = {setup_groupbox_position[1] + (3 * btn_size[1]), setup_groupbox_position[2] + (1 * btn_size[2])},
     Size = {2 * btn_size[1], btn_size[2]}
@@ -96,7 +96,7 @@ if CurrentPage == "Control" then
     }
   )
   layout["Status"] = {
-    PrettyName = "Connection State",
+    PrettyName = "System~Status",
     Style = "Text",
     HTextAlign = "Center",
     Margin = standard_indicator_margin,
@@ -128,6 +128,26 @@ if CurrentPage == "Control" then
       HTextAlign = "Center"
     }
   )
+  table.insert(
+    graphics,
+    {
+      Type = "Text",
+      Text = "Channel Select:",
+      Color = Colors.Black,
+      FontSize = subheading_font_size,
+      FontStyle = "Regular",
+      Position = {control_groupbox_position[1] + (1 * btn_size[1]), control_groupbox_position[2] + (1 * btn_size[2])},
+      Size = {2 * btn_size[1], btn_size[2]},
+      HTextAlign = "Right"
+    }
+  )
+  layout["ChannelSelect"] = {
+    PrettyName = "Remote~Channel Select",
+    Style = "Indicator",
+    Margin = standard_indicator_margin,
+    Position = {control_groupbox_position[1] + (3 * btn_size[1]), control_groupbox_position[2] + (1 * btn_size[2])},
+    Size = {2 * btn_size[1], btn_size[2]}
+  }
   for i, control in ipairs(ButtonNames) do
     local row = math.floor((i - 1) / row_size) + 1
     local column = i - (row - 1) * row_size
@@ -139,7 +159,7 @@ if CurrentPage == "Control" then
       Position = {
         control_groupbox_position[1] + (control_groupbox_size[1] / 2) - (btn_size[1] * row_size / 2) +
           (btn_size[1] * (column - 1)),
-        control_groupbox_position[2] + (btn_size[2] * row)
+       (control_groupbox_position[2] + btn_size[2]) + (btn_size[2] * row)
       },
       Size = btn_size
     }
